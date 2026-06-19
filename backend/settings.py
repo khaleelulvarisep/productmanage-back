@@ -28,10 +28,13 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3@o)f8qz3q&7t0l0@cjzr-nh8dx))t79_=1deur#ip34=n%dr='
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-3@o)f8qz3q&7t0l0@cjzr-nh8dx))t79_=1deur#ip34=n%dr=',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'true').lower() in ('1', 'true', 'yes')
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -129,6 +132,47 @@ CORS_ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    origin.strip()
+    for origin in os.environ.get('CORS_ALLOWED_ORIGIN_REGEXES', '').split(',')
+    if origin.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://d3h3a12fmvm2gf.cloudfront.net',
+    'https://d1on9iqvthjv2l.cloudfront.net',
+] + [
+    origin.strip()
+    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+
+# Enhanced CORS Configuration
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-csrftoken',
+]
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -165,6 +209,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 def get_required_env(name):
     value = os.getenv(name)
@@ -187,7 +234,3 @@ cloudinary.config(
     api_secret=CLOUDINARY_STORAGE['API_SECRET'],
     secure=True,
 )
-
-print('Cloudinary configured successfully')
-print(f"Loaded Cloud Name: {CLOUDINARY_STORAGE['CLOUD_NAME']}")
-print(f"Loaded API Key: {CLOUDINARY_STORAGE['API_KEY']}")
